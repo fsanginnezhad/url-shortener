@@ -6,10 +6,10 @@ from django.shortcuts import get_object_or_404
 from .models import Link
 from .serializers import LinkSerializer
 
-from rest_framework.permissions import IsAuthenticated
+
 
 class LinklistCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         links = Link.objects.filter(owner=request.user)
         serializer = LinkSerializer(links, many=True)
@@ -24,7 +24,7 @@ class LinklistCreateView(APIView):
 
 
 class LinkDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+
     def get_object(self, pk, user):
         return get_object_or_404(Link, pk=pk, owner=user)
 
