@@ -3,6 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
+from django.core.cache import cache
+from django.http import HttpResponseRedirect
+from rest_framework.permissions import AllowAny
+from django.db import models
 
 from .models import Link
 from .serializers import LinkSerializer
@@ -50,3 +54,19 @@ class LinkDetailView(APIView):
         link = self.get_object(pk, request.user)
         link.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class LinkRedirectView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, short_code):
+        cache_key = f'link:{short_code}'
+        original_url = cache.get(cache_key)
+        if original_url is None:
+            link = get_object_or_404(Link, short_code=short_code, is_active=True)
+            original_url = link.original_url
+            cache.set(cache_key, original_url, timeout=3600)
+            Link.objects.filter(pk=link.pk).update(click_count=models.F('click_count') + 1)
+        else:
+            Link.objects.filter(short_code=short_code).update(click_count=models.F('click_count') + 1)
+        return HttpResponseRedirect(original_url)

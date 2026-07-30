@@ -8,7 +8,7 @@ class LinkSerializer(serializers.Serializer):
     is_active = serializers.BooleanField(default=True)
     click_count = serializers.IntegerField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
-    exires_at = serializers.DateTimeField(required=False, allow_null=True)
+    expires_at = serializers.DateTimeField(required=False, allow_null=True)
 
     def create(self, validated_data):
         owner = self.context['request'].user
