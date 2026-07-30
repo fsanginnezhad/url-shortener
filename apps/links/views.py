@@ -10,6 +10,7 @@ from django.db import models
 
 from .models import Link
 from .serializers import LinkSerializer
+from .tasks import increment_click_count
 
 
 
@@ -66,7 +67,5 @@ class LinkRedirectView(APIView):
             link = get_object_or_404(Link, short_code=short_code, is_active=True)
             original_url = link.original_url
             cache.set(cache_key, original_url, timeout=3600)
-            Link.objects.filter(pk=link.pk).update(click_count=models.F('click_count') + 1)
-        else:
-            Link.objects.filter(short_code=short_code).update(click_count=models.F('click_count') + 1)
+        increment_click_count.delay(short_code)
         return HttpResponseRedirect(original_url)
